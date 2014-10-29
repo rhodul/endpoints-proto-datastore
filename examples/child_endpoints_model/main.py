@@ -170,9 +170,9 @@ class MyApi(remote.Service):
   # the ProtoRPC message schema for MyParent is a single field "name", this
   # will be all that is contained in the request and the response.
   @MyParent.method(request_fields=('name',),
-                      path='myparent',
-                      http_method='POST',
-                      name='myparent.insert')
+                   path='myparent',
+                   http_method='POST',
+                   name='myparent.insert')
   def MyParentInsert(self, my_parent):
     # Though we don't actively change the model passed in, the value
     # of updated is set to the current time.
@@ -185,10 +185,10 @@ class MyApi(remote.Service):
   # Unlike in keys_with_ancestors/main.py, we want a datastore to generate
   # child ID, therefore we do not include it in the request body.
   @MyModel.method(user_required=True,
-                     request_fields=('attr1', 'attr2'),
-                     path='mymodel/{parent}',
-                     http_method='POST',
-                     name='mymodel.insert')
+                  request_fields=('attr1', 'attr2'),
+                  path='mymodel/{parent}',
+                  http_method='POST',
+                  name='mymodel.insert')
   def MyModelInsert(self, my_model):
     my_model.modified_by = endpoints.get_current_user()
     my_model.put()
@@ -202,18 +202,18 @@ class MyApi(remote.Service):
   #   .../mymodels/someparentID
   # where ... is the full path to the API.
   @MyModel.query_method(query_fields=('parent',),
-                            path='mymodels/{parent}',
-                            name='mymodel.list')
+                        path='mymodels/{parent}',
+                        name='mymodel.list')
   def MyModelList(self, query):
     return query
 
   # To update MyModel entity, we need to identify it by both {parent}
   # and {id}.
   @MyModel.method(user_required=True,
-                     request_fields=('attr1', 'attr2'),
-                     path='mymodel/{parent}/{id}',
-                     http_method='PUT',
-                     name='mymodel.update')
+                  request_fields=('attr1', 'attr2'),
+                  path='mymodel/{parent}/{id}',
+                  http_method='PUT',
+                  name='mymodel.update')
   def MyModelUpdate(self, my_model):
     if not my_model.from_datastore:
       raise endpoints.BadRequestException(
