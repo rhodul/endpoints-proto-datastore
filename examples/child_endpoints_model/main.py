@@ -173,8 +173,8 @@ class MyApi(remote.Service):
   # we include "parent" in the request path by setting
   # path='mymodel/{parent}'.
   # Unlike in keys_with_ancestors/main.py, we want the datastore to generate
-  # child ID, therefore we do not include it in the default message fields schema
-  # which determines the request body.
+  # child ID, therefore we do not include it in the default message fields
+  # schema which determines the request body.
   @MyModel.method(user_required=True,
                   request_fields=('attr1', 'attr2'),
                   path='mymodel/{parent}',
