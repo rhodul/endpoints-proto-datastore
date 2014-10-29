@@ -25,11 +25,6 @@ from endpoints_proto_datastore.ndb import EndpointsModel
 class ChildEndpointsModel(EndpointsModel):
   """Base child model class."""
 
-  # This property must be set by an inheritor
-  # to a class of a model that represents this model's
-  # parent entity.
-  parent_model_class = None
-
   # These values are placeholders to be used when a key is created;
   # the _parent will be used as the ancestor and the _id as the ID.
   # For example: ndb.Key(parent_class, _parent, self.__class__, _id)
@@ -58,8 +53,7 @@ class ChildEndpointsModel(EndpointsModel):
       # We end up in this situation when child id is not supplied by REST client
       # in the POST, which causes new child entity to be created
       # (see the 'if' below).
-      self._key = key = ndb.Key(self.__class__.parent_model_class,
-                                self._parent, self.__class__, self._id)
+      self._key = key = ndb.Key(MyParent, self._parent, MyModel, self._id)
       if self._id is not None:
         # Child id has been supplied by REST client, which means
         # that it is an attempt to work with existing child entity.
@@ -86,7 +80,7 @@ class ChildEndpointsModel(EndpointsModel):
     self._parent = value
     # After setting the value, we must make sure the parent exists before
     # it can be used as an ancestor.
-    if ndb.Key(self.__class__.parent_model_class, value).get() is None:
+    if ndb.Key(MyParent, value).get() is None:
       # If the Parent key does not correspond to an entity in the datastore,
       # we return an HTTP 404 Not Found.
       raise endpoints.NotFoundException('Parent with id %s does not exist.'
@@ -99,7 +93,7 @@ class ChildEndpointsModel(EndpointsModel):
     # If the "parent" property is used in a query method, we want
     # the ancestor of the query to be the parent key.
     self._endpoints_query_info.ancestor = \
-        ndb.Key(self.__class__.parent_model_class, value)
+        ndb.Key(MyParent, value)
 
   # This EndpointsAliasProperty is used to get and set a parent for our entity
   # key. It is required, meaning that a value must always be set if the
@@ -152,10 +146,6 @@ class MyParent(EndpointsModel):
 # Here we inherit from the ChildEnpointModel base class
 # that has all the wiring for dealing with parent ID
 class MyModel(ChildEndpointsModel):
-  # we need to tell ChildEndpointsModel which EndpointsModel
-  # defines parent Entity type
-  parent_model_class = MyParent
-
   attr1 = ndb.StringProperty()
   attr2 = ndb.StringProperty()
   created = ndb.DateTimeProperty(auto_now_add=True)
@@ -182,8 +172,9 @@ class MyApi(remote.Service):
   # Since we require MyModel instances also have a MyParent ancestor,
   # we include "parent" in the request path by setting
   # path='mymodel/{parent}'.
-  # Unlike in keys_with_ancestors/main.py, we want a datastore to generate
-  # child ID, therefore we do not include it in the request body.
+  # Unlike in keys_with_ancestors/main.py, we want the datastore to generate
+  # child ID, therefore we do not include it in the default message fields schema
+  # which determines the request body.
   @MyModel.method(user_required=True,
                   request_fields=('attr1', 'attr2'),
                   path='mymodel/{parent}',
